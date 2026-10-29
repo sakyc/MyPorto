@@ -1,0 +1,378 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "sort": 0,
+      "translations": {
+        "id": {
+          "title": "",
+          "description": "Tim kecil kesulitan melacak pembagian tugas yang tersebar di chat dan spreadsheet.",
+          "role": "Pengembang fullstack",
+          "type": "aplikasi web",
+          "contribution": "Merancang skema basis data, membangun REST API, dan antarmuka React.",
+          "challenge": "Menjaga urutan tugas tetap konsisten saat beberapa orang mengubah papan secara bersamaan.",
+          "results": ""
+        }
+      },
+      "slug": "task-manager-app",
+      "title": "Task Manager App",
+      "description": "Small teams lose track of who is doing what across chat and spreadsheets.",
+      "role": "Fullstack developer",
+      "type": "web app",
+      "contribution": "Designed the database schema, built the REST API and the React interface.",
+      "challenge": "Keeping task ordering consistent when several people reorder the same board at once.",
+      "results": "",
+      "tech": "React, Node.js, PostgreSQL",
+      "categories": [
+        "javascript",
+        "web-app"
+      ],
+      "status": "published",
+      "featured": true,
+      "featuredOrder": 0,
+      "isExample": true,
+      "imageId": null,
+      "imageUrl": "",
+      "liveUrl": "",
+      "repoUrl": ""
+    },
+    {
+      "id": 2,
+      "sort": 1,
+      "translations": {
+        "id": {
+          "title": "",
+          "description": "Sebuah toko membutuhkan informasi stok langsung, bukan penghitungan di akhir hari.",
+          "role": "Pengembang fullstack",
+          "type": "",
+          "contribution": "Membangun API, laporan stok, dan akses berbasis peran.",
+          "challenge": "Memuat laporan besar dengan cepat tanpa menghambat penggunaan sehari-hari.",
+          "results": ""
+        }
+      },
+      "slug": "inventory-dashboard",
+      "title": "Inventory Dashboard",
+      "description": "A shop needed live stock levels instead of end-of-day counts.",
+      "role": "Fullstack developer",
+      "type": "dashboard",
+      "contribution": "Built the API, the stock reports and role-based access.",
+      "challenge": "Making large reports load quickly without blocking day-to-day use.",
+      "results": "",
+      "tech": "Node.js, MySQL, Chart.js",
+      "categories": [
+        "javascript",
+        "web-app"
+      ],
+      "status": "published",
+      "featured": true,
+      "featuredOrder": 1,
+      "isExample": true,
+      "imageId": null,
+      "imageUrl": "",
+      "liveUrl": "",
+      "repoUrl": ""
+    },
+    {
+      "id": 3,
+      "sort": 2,
+      "translations": {
+        "id": {
+          "title": "",
+          "description": "Deployment manual memakan waktu dan rentan kesalahan.",
+          "role": "Pengembang & pemelihara",
+          "type": "",
+          "contribution": "Mengemas aplikasi dalam container serta menyiapkan Nginx, HTTPS, dan skrip deployment yang konsisten di VPS Linux.",
+          "challenge": "Pembaruan tanpa downtime pada satu server kecil.",
+          "results": ""
+        }
+      },
+      "slug": "self-hosted-deploy-setup",
+      "title": "Self-hosted Deploy Setup",
+      "description": "Deploying by hand was slow and easy to get wrong.",
+      "role": "Developer & maintainer",
+      "type": "devops",
+      "contribution": "Containerised the app and set up Nginx, HTTPS and a repeatable deploy script on a Linux VPS.",
+      "challenge": "Zero-downtime updates on a single small server.",
+      "results": "",
+      "tech": "Linux, Docker, Nginx",
+      "categories": [
+        "devops"
+      ],
+      "status": "published",
+      "featured": true,
+      "featuredOrder": 2,
+      "isExample": true,
+      "imageId": null,
+      "imageUrl": "",
+      "liveUrl": "",
+      "repoUrl": ""
+    }
+  ],
+  "experience": [
+    {
+      "id": 1,
+      "sort": 0,
+      "translations": {
+        "id": {
+          "role": "Pengembang Fullstack",
+          "company": "Nama Perusahaan",
+          "period": "2024 – Sekarang",
+          "description": ""
+        }
+      },
+      "role": "Fullstack Developer",
+      "company": "Company Name",
+      "period": "2024 – Present",
+      "description": "Dummy: builds and maintains web applications and APIs.",
+      "isExample": true
+    },
+    {
+      "id": 2,
+      "sort": 1,
+      "translations": {
+        "id": {
+          "role": "Pengembang Web Junior",
+          "company": "Nama Perusahaan",
+          "period": "",
+          "description": ""
+        }
+      },
+      "role": "Junior Web Developer",
+      "company": "Company Name",
+      "period": "2023 – 2024",
+      "description": "Dummy: delivered features and fixed bugs across the stack.",
+      "isExample": true
+    }
+  ],
+  "certificates": [
+    {
+      "id": 1,
+      "sort": 0,
+      "translations": {
+        "id": {
+          "name": "Sertifikat Pengembangan Web",
+          "issuer": "Organisasi Penerbit",
+          "year": ""
+        }
+      },
+      "name": "Web Development Certificate",
+      "issuer": "Issuing Organization",
+      "year": "2024",
+      "credentialId": "",
+      "credentialUrl": "",
+      "imageId": null,
+      "imageUrl": "",
+      "isExample": true
+    },
+    {
+      "id": 2,
+      "sort": 1,
+      "translations": {
+        "id": {
+          "name": "Dasar-dasar Linux",
+          "issuer": "Organisasi Penerbit",
+          "year": ""
+        }
+      },
+      "name": "Linux Fundamentals",
+      "issuer": "Issuing Organization",
+      "year": "2023",
+      "credentialId": "",
+      "credentialUrl": "",
+      "imageId": null,
+      "imageUrl": "",
+      "isExample": true
+    }
+  ],
+  "stack": [
+    {
+      "id": 1,
+      "sort": 0,
+      "translations": {
+        "id": {
+          "name": ""
+        }
+      },
+      "name": "frontend",
+      "items": [
+        "HTML / CSS / JavaScript",
+        "React"
+      ]
+    },
+    {
+      "id": 2,
+      "sort": 1,
+      "translations": {
+        "id": {
+          "name": ""
+        }
+      },
+      "name": "backend",
+      "items": [
+        "Node.js",
+        "REST APIs"
+      ]
+    },
+    {
+      "id": 3,
+      "sort": 2,
+      "translations": {
+        "id": {
+          "name": ""
+        }
+      },
+      "name": "linux & servers",
+      "items": [
+        "Linux",
+        "Nginx"
+      ]
+    },
+    {
+      "id": 4,
+      "sort": 3,
+      "translations": {
+        "id": {
+          "name": ""
+        }
+      },
+      "name": "tooling",
+      "items": [
+        "Git",
+        "Docker"
+      ]
+    }
+  ],
+  "assistant": [
+    {
+      "id": 1,
+      "sort": 0,
+      "translations": {
+        "id": {
+          "question": "Siapa Rifki?",
+          "answer": "Aku Rifki Muhammad Fadhil, fullstack developer di Indonesia. Aku mengerjakan database, API, tampilan web, dan deployment Linux."
+        }
+      },
+      "command": "/about",
+      "label": "Profile",
+      "question": "Who is Rifki?",
+      "answer": "I’m Rifki Muhammad Fadhil, a fullstack developer in Indonesia. I work with databases, APIs, web interfaces, and Linux deployments.",
+      "goSection": "about"
+    },
+    {
+      "id": 2,
+      "sort": 1,
+      "translations": {
+        "id": {
+          "question": "Teknologi apa yang digunakan?",
+          "answer": ""
+        }
+      },
+      "command": "/stack",
+      "label": "Tools",
+      "question": "What technologies does he use?",
+      "answer": "I work with HTML, CSS, JavaScript, React, Node.js, REST APIs, Linux, Nginx, Git, and Docker. You can find the full list in Stack.",
+      "goSection": "stack"
+    },
+    {
+      "id": 3,
+      "sort": 2,
+      "translations": {
+        "id": {
+          "question": "Apa saja yang sudah dibuat?",
+          "answer": ""
+        }
+      },
+      "command": "/projects",
+      "label": "Work",
+      "question": "What has he built?",
+      "answer": "The projects shown here are clearly marked examples for now. Open Projects to explore their details.",
+      "goSection": "projects"
+    },
+    {
+      "id": 4,
+      "sort": 3,
+      "translations": {
+        "id": {
+          "question": "Bagaimana pengalamannya?",
+          "answer": "Jabatan dan perusahaan di sini masih contoh, belum riwayat kerjaku yang terverifikasi."
+        }
+      },
+      "command": "/experience",
+      "label": "Journey",
+      "question": "What is his experience?",
+      "answer": "The roles and companies shown here are examples for now, not my verified work history.",
+      "goSection": "experience"
+    },
+    {
+      "id": 5,
+      "sort": 4,
+      "translations": {
+        "id": {
+          "question": "Bagaimana cara menghubunginya?",
+          "answer": ""
+        }
+      },
+      "command": "/contact",
+      "label": "Say hello",
+      "question": "How can I contact him?",
+      "answer": "Use the form in Contact to send me a message. Add your name, email, and what you have in mind; a phone number is optional.",
+      "goSection": "contact"
+    },
+    {
+      "id": 6,
+      "sort": 5,
+      "translations": {
+        "id": {
+          "question": "Apakah sedang menerima pekerjaan?",
+          "answer": ""
+        }
+      },
+      "command": "/availability",
+      "label": "Status",
+      "question": "Is he available for work?",
+      "answer": "I haven’t shared my availability yet. Send me a message in Contact to ask.",
+      "goSection": "contact"
+    }
+  ],
+  "settings": {
+    "siteTitle": "Rifki Fadhil — Fullstack Developer",
+    "availability": "",
+    "profile": {
+      "name": "Rifki Muhammad Fadhil",
+      "firstName": "Rifki",
+      "lastName": "Fadhil",
+      "role": "Fullstack Developer",
+      "location": "Indonesia",
+      "description": "I build web apps — from the database to the details you click.",
+      "aboutCopy": "I’m Rifki Muhammad Fadhil, a fullstack developer in Indonesia. I build the database, connect the API, and bring it all together on screen. I like code that’s easy to follow and apps that are easy to use.",
+      "portraitUrl": "/design/portrait.webp"
+    },
+    "contact": [
+      {
+        "label": "Email",
+        "value": "rifki@example.com",
+        "url": "mailto:rifki@example.com",
+        "isExample": true
+      },
+      {
+        "label": "GitHub",
+        "value": "github.com/username",
+        "url": "https://github.com/",
+        "isExample": true
+      },
+      {
+        "label": "LinkedIn",
+        "value": "linkedin.com/in/username",
+        "url": "https://linkedin.com/",
+        "isExample": true
+      }
+    ],
+    "translations": {
+      "id": {
+        "description": "Aku bikin aplikasi web, dari database sampai detail yang kamu klik.",
+        "aboutCopy": "Aku Rifki Muhammad Fadhil, fullstack developer di Indonesia. Aku membangun database, menghubungkan API, dan menyatukannya di layar. Aku suka kode yang mudah dipahami dan aplikasi yang nyaman dipakai."
+      }
+    },
+    "copy": {}
+  }
+}

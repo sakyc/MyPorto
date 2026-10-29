@@ -1,0 +1,24 @@
+[Unit]
+Description=Nuansua Portfolio API
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=nuansua
+Group=nuansua
+WorkingDirectory=/srv/nuansua/apps/api
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/nuansua/api.env
+ExecStart=/usr/bin/node /srv/nuansua/apps/api/dist/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nuansua/uploads
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

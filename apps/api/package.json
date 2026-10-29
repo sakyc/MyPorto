@@ -1,0 +1,48 @@
+{
+  "name": "@rf/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/app.test.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts",
+    "maintenance": "tsx src/db/maintenance.ts",
+    "owner:recover": "tsx src/db/owner.ts"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "2.2.2",
+    "@rf/contracts": "*",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.6",
+    "dotenv": "18.0.9",
+    "drizzle-orm": "0.45.4",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.1",
+    "helmet": "8.3.0",
+    "multer": "2.5.0",
+    "mysql2": "3.24.6",
+    "otpauth": "9.5.2",
+    "pino": "10.4.0",
+    "qrcode": "1.5.4",
+    "sharp": "0.35.5",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "1.4.10",
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.3.0",
+    "@types/node": "26.6.5",
+    "@types/qrcode": "1.5.6",
+    "@types/supertest": "7.2.1",
+    "drizzle-kit": "0.31.11",
+    "supertest": "7.3.1",
+    "tsx": "4.23.15"
+  }
+}

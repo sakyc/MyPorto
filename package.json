@@ -1,0 +1,32 @@
+{
+  "name": "rf-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.20.2"
+  },
+  "scripts": {
+    "dev": "npm run build -w @rf/contracts && concurrently --kill-others-on-fail -n contracts,web,api \"npm run dev -w @rf/contracts\" \"npm run dev -w @rf/web\" \"npm run dev -w @rf/api\"",
+    "build": "npm run build -w @rf/contracts && npm run build -w @rf/api && npm run build -w @rf/web",
+    "lint": "npm run lint -w @rf/web",
+    "typecheck": "npm run build -w @rf/contracts && npm run typecheck -w @rf/api && npm run typecheck -w @rf/web",
+    "test": "npm run build -w @rf/contracts && npm run test -w @rf/api",
+    "db:generate": "npm run db:generate -w @rf/api",
+    "db:migrate": "npm run db:migrate -w @rf/api",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build",
+    "db:seed": "npm run build -w @rf/contracts && npm run db:seed -w @rf/api"
+  },
+  "devDependencies": {
+    "concurrently": "9.2.5",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+.contact-form{border-top:1px solid var(--bd);padding:1.8rem 0 1rem;margin:0 0 1rem;display:grid;gap:1.4rem}
+.contact-form-row{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.contact-field{display:grid;gap:.55rem;min-width:0}.contact-field>label{font:400 .65rem var(--fm);color:var(--tx)}
+.contact-field label>span{color:var(--mu);font-size:.6rem}
+.contact-field input,.contact-field textarea{width:100%;border:0;border-bottom:1px solid var(--bd);border-radius:0;background:transparent;padding:.8rem 0;color:var(--tx);font:400 1rem/1.6 var(--fd);outline-offset:4px;min-height:48px}
+.contact-field input::placeholder,.contact-field textarea::placeholder{color:var(--mu);opacity:.8}
+.contact-field input:focus,.contact-field textarea:focus{border-color:var(--ak)}
+.contact-field textarea{min-height:135px;resize:vertical}
+.contact-field input[aria-invalid=true],.contact-field textarea[aria-invalid=true]{border-color:var(--ak)}
+.contact-error{font:400 .65rem/1.7 var(--fm);color:var(--ak)}.contact-error:empty{display:none}
+.contact-privacy{font:400 .75rem/1.8 var(--fd);color:var(--mu);max-width:75ch;margin:0}
+.contact-consent{display:flex;align-items:flex-start;gap:.7rem;font:400 .85rem/1.7 var(--fd);min-height:44px;cursor:pointer}
+.contact-consent input{accent-color:var(--ak);width:18px;height:18px;margin-top:.2rem;flex:none}
+.contact-send-row{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.contact-send{display:inline-flex;align-items:center;justify-content:space-between;gap:2rem;min-height:48px;padding:.8rem 1rem;background:var(--ac);border:1px solid var(--ac);color:var(--on);font:500 .75rem var(--fm);cursor:pointer}
+.contact-send:hover{filter:brightness(1.06)}.contact-send:disabled{opacity:.5;cursor:wait}
+.contact-preview-note{font:400 .6rem/1.8 var(--fm);color:var(--mu);max-width:55ch;margin:0}
+#contact-form-status{font:400 .75rem/1.8 var(--fd);min-height:1.8em;margin:0;color:var(--ak)}
+.contact-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.contact-alternative{font:400 .65rem var(--fm);color:var(--mu);margin:2rem 0 1rem}
+.msg p{white-space:pre-wrap;overflow-wrap:anywhere}.msg .message-preview{font:400 .6rem/1.8 var(--fm);color:var(--ak)}
+#v-messages .row strong{overflow-wrap:anywhere;min-width:0}
+@media(max-width:900px){#v-messages>.split{grid-template-columns:1fr!important}}
+@media(max-width:700px){.contact-form-row{grid-template-columns:1fr;gap:1.4rem}.contact-form{padding-top:1.4rem}.contact-send-row{gap:.9rem}.contact-field input,.contact-field textarea{font-size:1rem}}

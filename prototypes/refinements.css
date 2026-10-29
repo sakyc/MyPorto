@@ -1,0 +1,55 @@
+/* Prototype refinements: preserve the original visual system. */
+.kinetic-hero{padding-top:clamp(2rem,5vh,4rem)}
+.rail .owner-access{color:var(--ak)!important;background:color-mix(in srgb,var(--ac) 7%,var(--bg))!important;border-block:1px solid color-mix(in srgb,var(--ac) 30%,var(--bd))!important;height:58px!important;flex-shrink:0}
+.owner-symbol{display:grid;justify-items:center;gap:3px;line-height:1}
+.owner-symbol svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5}
+.owner-symbol small{font:500 7px var(--fm);letter-spacing:.05em}
+.owner-access .lb{display:flex;align-items:center;gap:1rem}
+.owner-access:hover .owner-symbol svg{transform:translateY(-2px)}
+.owner-symbol svg{transition:transform .25s var(--eo)}
+.rail .language-control{height:52px;color:var(--tx)}
+.language-control .locale-mark{width:54px;margin-inline:9px;display:flex;gap:3px;align-items:center;justify-content:center;font:500 11px var(--fm)}
+.locale-mark span{padding:4px 2px;color:var(--mu)}
+.locale-mark span.is-active{color:var(--ak);box-shadow:inset 0 -2px var(--ak)}
+.locale-mark i{font-style:normal;color:var(--bd)}
+.language-control .lb{font-size:.7rem}
+.locale-mobile{display:none}
+.language-control:hover{background:var(--sf)!important}
+.locale-announcement{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.rail .tools{flex-shrink:0}
+.rail ul{flex-shrink:0}
+body.view-other>.rail{display:flex!important}
+body.view-other{padding-left:72px}
+body.view-other .rail #links,body.view-other .rail .rd{display:none}
+body.view-other .rail .tools{margin-top:auto}
+@media(min-width:900px) and (max-height:720px){.rail{padding-block:.4rem;overflow-y:auto}.rail ul{margin:.5rem 0}.rail a:not(.brand),.rail .btn{height:40px}.rail .owner-access{height:52px!important}.rail .language-control{height:48px}}
+/* Keep the progress and utility controls at the bottom even in short windows. */
+@media(min-width:900px){
+ .rail .brand{flex-shrink:0}
+ .rail ul{margin:clamp(.5rem,2vh,1.5rem) 0 0}
+ .rail .rd{margin-top:auto;flex-shrink:0}
+ .rail .tools{margin-top:0}
+ body.view-other .rail .tools{margin-top:auto}
+}
+@media(max-width:899px){
+ body,body.view-other{padding-left:0;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+ .rail{height:calc(112px + env(safe-area-inset-bottom));display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+ .rail .tools{order:-1;display:flex;flex:0 0 48px!important;width:100%;border:0;border-bottom:1px solid var(--bd);margin:0!important}
+ .rail .tools .btn,.rail .tools .owner-access{height:48px!important;min-width:48px;flex:0 0 48px;flex-direction:row;gap:7px}
+ .rail .tools .language-control{flex:1 1 auto;justify-content:flex-start;padding-left:12px}
+ .rail .tools .owner-access{flex:0 1 144px;min-width:116px;justify-content:center;border-block:0!important;border-left:1px solid color-mix(in srgb,var(--ac) 30%,var(--bd))!important}
+ .rail .tools .language-control .lb,.rail .tools .owner-access .lb{display:inline;opacity:1;transform:none;font-size:.61rem;letter-spacing:0}
+ .language-control .locale-desktop{display:none}.language-control .locale-mobile{display:inline}
+ .rail .language-control .locale-mark{margin:0;width:50px;flex:none}
+ .owner-symbol small{display:none}.owner-symbol svg{width:16px;height:16px}
+ .rail ul{flex:0 0 64px;width:100%}.rail li{flex:1 0 64px}
+ body.view-other .rail{height:calc(48px + env(safe-area-inset-bottom))}
+ body.view-other{padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+ .kinetic-hero{min-height:calc(100svh - 112px);padding-top:1.5rem}
+ #fab{bottom:calc(128px + env(safe-area-inset-bottom))}
+ .terminal-chat{bottom:calc(124px + env(safe-area-inset-bottom));max-height:calc(100dvh - 145px)}
+ body.view-other #fab{bottom:calc(64px + env(safe-area-inset-bottom))}
+}
+@media(max-width:359px){.rail .tools .language-control .lb{display:none}}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important}}

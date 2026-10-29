@@ -1,0 +1,46 @@
+node_modules/
+.cache/
+.local/
+apps/api/data/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.log
+.DS_Store
+.vercel/
+
+# Local review artifacts (may contain admin information)
+prototypes/review/
+
+# Private keys, certificates and local credentials
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+.ssh/
+.my.cnf
+.mylogin.cnf
+.netrc
+.npmrc.local
+
+# Database exports and backup artifacts (keep source migrations)
+backups/
+*.sql.gz
+*.sql.zip
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+!apps/api/drizzle/*.sql
+

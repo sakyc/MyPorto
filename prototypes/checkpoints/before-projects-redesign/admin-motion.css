@@ -1,0 +1,26 @@
+.admin-splash{position:fixed;inset:0;z-index:200;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(1.5rem,5vw,4.5rem);background:var(--bg);transition:transform .75s cubic-bezier(.76,0,.24,1);overflow:hidden}
+.admin-splash[hidden]{display:none}.admin-splash.is-leaving{transform:translateY(-100%)}
+.boot-top,.boot-bottom{display:flex;align-items:center;gap:1rem;font:400 .65rem var(--fm);letter-spacing:.1em;color:var(--mu)}
+.boot-top{justify-content:space-between;border-bottom:1px solid var(--bd);padding-bottom:1rem}
+.boot-skip{background:none;border:0;color:var(--mu);font:inherit;cursor:pointer;min-height:44px}
+.boot-center{align-self:center}.boot-center>p{font:400 .7rem var(--fm);letter-spacing:.15em;color:var(--ak)}
+.boot-monogram{font:700 clamp(7rem,28vw,22rem)/.9 var(--fd);letter-spacing:-.085em;margin:1rem 0;overflow:hidden}
+.boot-monogram span{display:inline-block;animation:boot-letter .8s var(--eo) both}.boot-monogram span:nth-child(2){animation-delay:.1s}.boot-monogram i{font-style:normal;color:var(--ak)}
+.boot-center h1{font:500 clamp(1.2rem,3vw,2rem) var(--fd);letter-spacing:-.04em;border-top:1px solid var(--bd);padding-top:1rem;max-width:max-content}
+.boot-line{flex:1;height:2px;background:var(--bd);overflow:hidden}.boot-line i{display:block;height:100%;background:var(--ac);transform:scaleX(var(--boot-progress,0));transform-origin:left}
+@keyframes boot-letter{from{transform:translateY(115%)}to{transform:none}}
+.login-utilities{position:absolute;left:clamp(1rem,4vw,3rem);right:clamp(1rem,4vw,3rem);top:1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;font:400 .7rem var(--fm)}
+.login-utilities a{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:var(--mu)}
+.login-utilities button{min-height:44px;min-width:44px}
+#login{padding-top:5rem;padding-bottom:2rem;overflow-y:auto}
+.lbox{animation:login-enter .65s var(--eo) both}.lbox.shake{animation:sh .4s}
+@keyframes login-enter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+dialog[open]{animation:login-enter .3s var(--eo)}
+.spark i{transform-origin:bottom;animation:chart-enter .65s var(--eo) both;animation-delay:calc(var(--bar-index,0)*25ms)}
+@keyframes chart-enter{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.view.on>.g2,.view.on>.split{animation:login-enter .5s .06s var(--eo) both}
+.top .back-public{font:400 .68rem var(--fm);text-decoration:none;color:var(--mu);min-height:44px;display:inline-flex;align-items:center;margin-left:auto}
+.top .back-public:hover{color:var(--ak)}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+@media(max-width:500px){.top{gap:.6rem;flex-wrap:wrap}.top .back-public{font-size:.6rem}.pub{font-size:.65rem}.boot-bottom{font-size:.55rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.admin-splash{display:none}}
