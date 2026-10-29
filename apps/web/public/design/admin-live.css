@@ -754,7 +754,33 @@ button.auth-back.tl {
 .credential-code {
   letter-spacing: 0.08em;
 }
+.verification-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.verification-option {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  padding: 1rem;
+  border: 1px solid var(--bd);
+  cursor: pointer;
+}
+.verification-option.is-selected { border-color: var(--ak); }
+.verification-option input { accent-color: var(--ak); margin-top: .2rem; }
+.verification-option span { display: grid; gap: .5rem; }
+.verification-option strong { font: 500 1rem var(--fd); }
+.verification-option small { font: .65rem/1.7 var(--fm); color: var(--mu); }
+.authenticator-setup { padding: 1.2rem; border-top: 1px solid var(--bd); display: grid; gap: 1rem; }
+.authenticator-setup > div > .mono, .authenticator-qr .mono { font-size: .7rem; line-height: 1.8; }
+.authenticator-setup .form { padding: 0; max-width: 420px; }
+.authenticator-setup .form > .btn { justify-self: start; }
+.authenticator-qr { max-width: 360px; }
+.authenticator-qr img { display: block; max-width: 100%; height: auto; border: 1px solid var(--bd); background: #fff; }
 @media (max-width: 600px) {
+  .verification-options { grid-template-columns: 1fr; }
   .credentials-panel .g2 {
     grid-template-columns: 1fr;
   }

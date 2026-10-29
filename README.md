@@ -20,6 +20,10 @@ Tambahkan QR tersebut ke aplikasi authenticator, lalu login dengan password priv
 
 Kolom login kosong dengan placeholder dan menerima username atau email. Ubah username, email login, dan password melalui **Settings → Account & security → Your sign-in details**. Masukkan password saat ini dan kode authenticator baru untuk menyimpan; password baru boleh dikosongkan untuk mempertahankannya. Perubahan langsung aktif tanpa publish, mengganti token sesi saat ini, serta mengeluarkan sesi lain. Email login terpisah dari email kontak publik. File akses lokal berisi kredensial awal dan tidak diperbarui otomatis saat akun diubah melalui dashboard.
 
+Di bagian yang sama, **Your second step** memilih authenticator atau PIN pribadi enam digit. PIN disimpan sebagai hash Argon2id dan dapat diganti; password tetap wajib pada langkah pertama. Konfirmasi perubahan memakai metode yang saat ini aktif. Saat berpindah dari PIN ke authenticator, masukkan juga kode authenticator baru untuk memastikan aplikasi sudah terhubung. Authenticator adalah faktor kepemilikan; PIN adalah kode tambahan yang tetap sampai diganti.
+
+**Connect your authenticator → Show authenticator QR** menampilkan QR akun yang sudah ada setelah konfirmasi password. QR tidak dikirim pada pemuatan Settings, tidak disimpan di browser, dan disembunyikan setelah dua menit atau saat tab ditinggalkan. Akun yang belum bisa login harus dipulihkan melalui konsol server; fitur ini tidak membuat jalur bypass login. Lihat `deploy/SECURITY-UPDATE.md` sebelum memperbarui produksi.
+
 ## Fitur yang tersambung
 
 - Portofolio English default, pilihan Indonesia tersimpan, tema light/dark, splash yang bisa dilewati, animasi dengan dukungan reduced motion, command menu, terminal jawaban preset, detail sertifikat, dan navigasi keyboard.

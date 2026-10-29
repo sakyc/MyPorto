@@ -10,7 +10,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/mysql-core";
-import type { SiteContent, Settings, DiffChange } from "@rf/contracts";
+import type { SiteContent, Settings, DiffChange, VerificationMethod } from "@rf/contracts";
 
 const stamp = () => ({
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -48,6 +48,8 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 254 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   totpSecret: text("totp_secret").notNull(),
+  verificationMethod: varchar("verification_method", { length: 8 }).$type<VerificationMethod>().notNull().default("totp"),
+  pinHash: varchar("pin_hash", { length: 255 }),
   lastTotpStep: int("last_totp_step").default(0).notNull(),
   failedLogins: int("failed_logins").default(0).notNull(),
   lockedUntil: timestamp("locked_until"),

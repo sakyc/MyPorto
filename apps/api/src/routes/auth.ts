@@ -3,7 +3,8 @@ import { rateLimit } from "express-rate-limit";
 import { hash, verify } from "@node-rs/argon2";
 import { TOTP } from "otpauth";
 import { and, eq, gt, or, sql } from "drizzle-orm";
-import { ownerCredentialsSchema } from "@rf/contracts";
+import { ownerCredentialsSchema, authenticatorQrSchema } from "@rf/contracts";
+import QRCode from "qrcode";
 import { z } from "zod";
 import { db } from "../db/client.js";
 import { users, sessions, challenges, auditLog } from "../db/schema.js";
@@ -16,6 +17,7 @@ import {
   cookieOptions,
 } from "../auth/session.js";
 import { HttpError, asyncRoute } from "../lib/http.js";
+import { checkVerification } from "../auth/verification.js";
 
 export function authRouter(disableLimits = false) {
   const router = Router();
@@ -103,7 +105,7 @@ export function authRouter(disableLimits = false) {
         ...cookieOptions("/api/admin/login"),
         maxAge: 5 * 60_000,
       });
-      res.json({ needs2fa: true });
+      res.set("Cache-Control", "no-store").json({ needs2fa: true, verificationMethod: owner.verificationMethod });
     }),
   );
   router.post(
@@ -134,7 +136,7 @@ export function authRouter(disableLimits = false) {
         .where(eq(challenges.tokenHash, challenge.tokenHash));
       const sessionToken = token(),
         csrfToken = token();
-      await db.transaction(async (tx) => {
+      const verificationError = await db.transaction(async (tx) => {
         const [owner] = await tx
           .select()
           .from(users)
@@ -142,22 +144,29 @@ export function authRouter(disableLimits = false) {
           .for("update");
         if (!owner || (owner.lockedUntil && owner.lockedUntil > new Date()))
           throw invalid();
-        const totp = new TOTP({
-          secret: decrypt(owner.totpSecret),
-          digits: 6,
-          period: 30,
-          algorithm: "SHA1",
-        });
-        const delta = totp.validate({ token: input.data.code, window: 1 });
-        const step = Math.floor(Date.now() / 30_000) + (delta || 0);
-        if (delta === null || step <= owner.lastTotpStep) throw invalid();
+        // A reusable PIN still requires a live, single-use password challenge.
+        const [liveChallenge] = await tx.select().from(challenges).where(
+          and(eq(challenges.tokenHash, challenge.tokenHash), gt(challenges.expiresAt, new Date())),
+        ).for("update");
+        if (!liveChallenge || liveChallenge.attempts > 3) throw invalid();
+        const checked = await checkVerification(owner, input.data.code);
+        if (!checked.valid) {
+          const failures = owner.failedLogins + 1;
+          await tx.update(users).set({ failedLogins: failures,
+            lockedUntil: failures >= 5 ? new Date(Date.now() + Math.min(60, 2 ** Math.min(failures - 5, 6)) * 60_000) : null,
+          }).where(eq(users.id, owner.id));
+          return new HttpError(checked.replay ? 409 : 400, checked.replay
+            ? "This code was already used. Wait for the next authenticator code."
+            : owner.verificationMethod === "pin" ? "Incorrect PIN. Enter your six-digit PIN."
+            : "Incorrect authenticator code. Check the account and automatic time on your phone.");
+        }
         // Consume the challenge atomically with session creation; replay is rejected.
         await tx
           .delete(challenges)
           .where(eq(challenges.tokenHash, challenge.tokenHash));
         await tx
           .update(users)
-          .set({ lastTotpStep: step, failedLogins: 0, lockedUntil: null })
+          .set({ lastTotpStep: checked.step, failedLogins: 0, lockedUntil: null })
           .where(eq(users.id, owner.id));
         await tx.insert(sessions).values({
           tokenHash: digest(sessionToken),
@@ -171,6 +180,7 @@ export function authRouter(disableLimits = false) {
           entityId: String(owner.id),
         });
       });
+      if (verificationError) throw verificationError;
       res.clearCookie(challengeCookie, cookieOptions("/api/admin/login"));
       res.cookie(sessionCookie, sessionToken, {
         ...cookieOptions(),
@@ -189,12 +199,12 @@ export function authRouter(disableLimits = false) {
     requireOwner,
     asyncRoute(async (req, res) => {
       const [owner] = await db
-        .select({ username: users.username, email: users.email })
+        .select({ username: users.username, email: users.email, verificationMethod: users.verificationMethod, pinHash: users.pinHash })
         .from(users)
         .where(eq(users.id, req.owner!.id));
       res
         .set("Cache-Control", "no-store")
-        .json({ ...owner, totpEnabled: true });
+        .json({ username: owner.username, email: owner.email, verificationMethod: owner.verificationMethod, totpEnabled: owner.verificationMethod === "totp", pinConfigured: !!owner.pinHash });
     }),
   );
   router.patch(
@@ -211,6 +221,11 @@ export function authRouter(disableLimits = false) {
             parallelism: 1,
           })
         : null;
+      const pinHash = input.newPin ? await hash(input.newPin, {
+        memoryCost: 19456, timeCost: 2, parallelism: 1,
+      }) : null;
+      let savedMethod: "totp" | "pin" = "totp";
+      let pinConfigured = false;
       const sessionToken = token(),
         csrfToken = token();
       await db.transaction(async (tx) => {
@@ -227,26 +242,26 @@ export function authRouter(disableLimits = false) {
         )
           throw new HttpError(
             400,
-            "Current password or authenticator code is incorrect.",
+            "Current password is incorrect.",
           );
-        const totp = new TOTP({
-          secret: decrypt(owner.totpSecret),
-          digits: 6,
-          period: 30,
-          algorithm: "SHA1",
-        });
-        const delta = totp.validate({ token: input.code, window: 1 });
-        if (delta === null)
-          throw new HttpError(
-            400,
-            "Current password or authenticator code is incorrect.",
-          );
-        const step = Math.floor(Date.now() / 30_000) + delta;
-        if (step <= owner.lastTotpStep)
+        const checked = await checkVerification(owner, input.code);
+        if (checked.replay)
           throw new HttpError(
             409,
             "This code was already used. Wait for the next authenticator code.",
           );
+        if (!checked.valid) throw new HttpError(400, owner.verificationMethod === "pin"
+          ? "Incorrect current PIN." : "Incorrect authenticator code. Check the account and automatic time on your phone.");
+        savedMethod = input.verificationMethod ?? owner.verificationMethod;
+        if (savedMethod === "pin" && !pinHash && !owner.pinHash)
+          throw new HttpError(400, "Set a six-digit PIN before selecting PIN verification.");
+        let nextTotpStep = checked.step;
+        if (savedMethod === "totp" && owner.verificationMethod === "pin") {
+          const enrolled = await checkVerification({ ...owner, verificationMethod: "totp" }, input.authenticatorCode);
+          if (!enrolled.valid) throw new HttpError(400, "Enter a fresh code from your authenticator before switching methods.");
+          nextTotpStep = enrolled.step;
+        }
+        pinConfigured = !!(pinHash || owner.pinHash);
         const duplicate = await tx
           .select({ id: users.id })
           .from(users)
@@ -264,7 +279,9 @@ export function authRouter(disableLimits = false) {
             username: input.username,
             email: input.email,
             ...(replacementHash ? { passwordHash: replacementHash } : {}),
-            lastTotpStep: step,
+            verificationMethod: savedMethod,
+            ...(pinHash ? { pinHash } : {}),
+            lastTotpStep: nextTotpStep,
             failedLogins: 0,
             lockedUntil: null,
           })
@@ -297,9 +314,25 @@ export function authRouter(disableLimits = false) {
         .json({
           username: input.username,
           email: input.email,
-          totpEnabled: true,
+          totpEnabled: savedMethod === "totp",
+          verificationMethod: savedMethod,
+          pinConfigured,
           csrfToken,
         });
+    }),
+  );
+  router.post(
+    "/authenticator/qr", requireOwner, csrf, limiter(),
+    asyncRoute(async (req, res) => {
+      const input = authenticatorQrSchema.parse(req.body);
+      const [owner] = await db.select().from(users).where(eq(users.id, req.owner!.id));
+      if (!owner || !await verify(owner.passwordHash, input.currentPassword).catch(() => false))
+        throw new HttpError(400, "Current password is incorrect.");
+      const totp = new TOTP({ issuer: "Nuansua Portfolio", label: owner.email,
+        secret: decrypt(owner.totpSecret), digits: 6, period: 30, algorithm: "SHA1" });
+      const qrDataUrl = await QRCode.toDataURL(totp.toString(), { width: 280, margin: 2 });
+      await db.insert(auditLog).values({ action: "authenticator_qr_viewed", entity: "owner", entityId: String(owner.id) });
+      res.set("Cache-Control", "no-store").json({ qrDataUrl, email: owner.email });
     }),
   );
   router.post(

@@ -186,7 +186,7 @@ test("real password and TOTP, replay protection, HttpOnly session and CSRF", asy
   await other.post("/api/admin/login").send({ email: "rifki", password });
   assert.equal(
     (await other.post("/api/admin/login/2fa").send({ code })).status,
-    401,
+    409,
   );
   assert.equal(
     (await agent.patch("/api/admin/projects/1").send({ title: "No CSRF" }))
@@ -567,8 +567,10 @@ test("owner credentials require CSRF, current password and fresh TOTP, rotate se
   assert.match(account.headers["cache-control"], /no-store/);
   assert.deepEqual(Object.keys(account.body).sort(), [
     "email",
+    "pinConfigured",
     "totpEnabled",
     "username",
+    "verificationMethod",
   ]);
   assert.equal((await request(app).get("/api/admin/credentials")).status, 401);
   const nextPassword = "Updated-owner-password!123";
@@ -708,6 +710,74 @@ test("owner credentials require CSRF, current password and fresh TOTP, rotate se
   );
   assert.equal(log.length, 2);
   assert.ok(log.every((row) => row.meta === null));
+});
+
+test("private authenticator QR requires a session, CSRF and password; credentials never expose secrets", async () => {
+  const endpoint = "/api/admin/authenticator/qr";
+  assert.equal((await request(app).post(endpoint).send({ currentPassword: "wrong" })).status, 401);
+  assert.equal((await agent.post(endpoint).send({ currentPassword: "Updated-owner-password!123" })).status, 403);
+  assert.equal((await agent.post(endpoint).set("X-CSRF-Token", csrf).send({ currentPassword: "wrong" })).status, 400);
+  const revealed = await agent.post(endpoint).set("X-CSRF-Token", csrf).send({ currentPassword: "Updated-owner-password!123" });
+  assert.equal(revealed.status, 200);
+  assert.match(revealed.headers["cache-control"], /no-store/);
+  assert.match(revealed.body.qrDataUrl, /^data:image\/png;base64,/);
+  assert.deepEqual(Object.keys(revealed.body).sort(), ["email", "qrDataUrl"]);
+  const profile = await agent.get("/api/admin/credentials");
+  assert.equal(profile.body.verificationMethod, "totp");
+  assert.equal(profile.body.pinConfigured, false);
+  assert.equal(profile.body.pinHash, undefined);
+  assert.equal(profile.body.totpSecret, undefined);
+});
+
+test("PIN mode verifies the current method, hashes PINs, consumes challenges, rotates sessions and confirms TOTP before switching back", async () => {
+  const currentPassword = "Updated-owner-password!123";
+  const credentials = { username: "new-owner", email: "changed@test.example", currentPassword, newPassword: "", code: totp.generate(), verificationMethod: "pin", newPin: "748291" };
+  await root.query("UPDATE users SET last_totp_step=0");
+  const patch = (body: Record<string, unknown>) => agent.patch("/api/admin/credentials").set("X-CSRF-Token", csrf).send(body);
+  assert.equal((await patch({ ...credentials, newPin: "" })).status, 400);
+  assert.equal((await patch({ ...credentials, newPin: "123" })).status, 400);
+  const switched = await patch(credentials);
+  assert.equal(switched.status, 200);
+  csrf = switched.body.csrfToken;
+  assert.equal(switched.body.verificationMethod, "pin");
+  assert.equal(switched.body.totpEnabled, false);
+  const [rows] = await root.query<mysql.RowDataPacket[]>("SELECT pin_hash FROM users");
+  assert.match(rows[0].pin_hash, /^\$argon2id\$/);
+  assert.notEqual(rows[0].pin_hash, credentials.newPin);
+  const login = request.agent(app);
+  const first = await login.post("/api/admin/login").send({ email: credentials.username, password: currentPassword });
+  assert.equal(first.body.verificationMethod, "pin");
+  assert.equal((await login.post("/api/admin/login/2fa").send({ code: "222222" })).status, 400);
+  const complete = await login.post("/api/admin/login/2fa").send({ code: credentials.newPin });
+  assert.equal(complete.status, 200);
+  // A saved challenge cookie cannot be reused even though the PIN itself is reusable.
+  const challengeCookie = (first.headers["set-cookie"] as unknown as string[]).find((v) => v.startsWith("rf_challenge="))!.split(";")[0];
+  assert.equal((await request(app).post("/api/admin/login/2fa").set("Cookie", challengeCookie).send({ code: credentials.newPin })).status, 401);
+  // Five failed second steps persist across new password challenges and lock the account.
+  const attacker = request.agent(app);
+  for (let i = 0; i < 5; i++) {
+    await attacker.post("/api/admin/login").send({ email: credentials.username, password: currentPassword });
+    assert.equal((await attacker.post("/api/admin/login/2fa").send({ code: "222222" })).status, 400);
+  }
+  assert.equal((await attacker.post("/api/admin/login").send({ email: credentials.username, password: currentPassword })).status, 429);
+  await root.query("UPDATE users SET failed_logins=0, locked_until=NULL");
+  const changed = await patch({ ...credentials, code: credentials.newPin, newPin: "539817" });
+  assert.equal(changed.status, 200);
+  csrf = changed.body.csrfToken;
+  assert.equal((await login.get("/api/admin/me")).status, 401);
+  const after = request.agent(app);
+  await after.post("/api/admin/login").send({ email: credentials.username, password: currentPassword });
+  assert.equal((await after.post("/api/admin/login/2fa").send({ code: credentials.newPin })).status, 400);
+  assert.equal((await after.post("/api/admin/login/2fa").send({ code: "539817" })).status, 200);
+  const restore = { ...credentials, verificationMethod: "totp", newPin: "", code: "539817" };
+  assert.equal((await patch(restore)).status, 400);
+  await root.query("UPDATE users SET last_totp_step=0");
+  const restored = await patch({ ...restore, authenticatorCode: totp.generate() });
+  assert.equal(restored.status, 200);
+  csrf = restored.body.csrfToken;
+  assert.equal(restored.body.verificationMethod, "totp");
+  const [audit] = await root.query<mysql.RowDataPacket[]>("SELECT meta FROM audit_log WHERE action IN ('credentials_updated', 'authenticator_qr_viewed')");
+  assert.ok(audit.every((row) => row.meta === null));
 });
 
 test("retention removes expired personal data and sessions, preserves aggregate counts", async () => {

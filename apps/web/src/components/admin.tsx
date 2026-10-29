@@ -21,6 +21,8 @@ import type {
   Settings,
   OwnerCredentials,
   OwnerCredentialsInput,
+  VerificationMethod,
+  AuthenticatorQr,
 } from "@rf/contracts";
 import { ownerCredentialsSchema } from "@rf/contracts";
 import { api, setCsrf, ApiError } from "@/lib/api";
@@ -805,6 +807,7 @@ function Login({
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [code, setCode] = useState(""),
+    [verificationMethod, setVerificationMethod] = useState<VerificationMethod>("totp"),
     [error, setError] = useState(""),
     [retrySeconds, setRetrySeconds] = useState(0),
     [busy, setBusy] = useState(false);
@@ -833,10 +836,11 @@ function Login({
         setError("");
         try {
           if (step === 1) {
-            await api("/login", {
+            const result = await api<{ verificationMethod: VerificationMethod }>("/login", {
               method: "POST",
               body: JSON.stringify({ email, password }),
             });
+            setVerificationMethod(result.verificationMethod || "totp");
             setStep(2);
             setPassword("");
           } else {
@@ -903,17 +907,17 @@ function Login({
             <h2>
               One last step<span>.</span>
             </h2>
-            <p>Enter the code from your authenticator.</p>
+            <p>{verificationMethod === "pin" ? "Enter your personal PIN." : "Enter the code from your authenticator."}</p>
           </div>
           <label className="auth-code-label" htmlFor="lcode">
-            6-digit code
+            {verificationMethod === "pin" ? "6-digit PIN" : "6-digit code"}
           </label>
           <div className="auth-code-group">
             <input
               id="lcode"
               ref={codeInput}
               className="auth-code-input"
-              type="text"
+              type={verificationMethod === "pin" ? "password" : "text"}
               inputMode="numeric"
               pattern="[0-9]{6}"
               maxLength={6}
@@ -943,7 +947,7 @@ function Login({
                     (index === Math.min(code.length, 5) ? "is-current" : "")
                   }
                 >
-                  {code[index] || <i />}
+                  {code[index] ? (verificationMethod === "pin" ? "•" : code[index]) : <i />}
                 </span>
               ))}
             </div>
@@ -1789,6 +1793,41 @@ function Inbox({
     </>
   );
 }
+function AuthenticatorSetup() {
+  const [password, setPassword] = useState("");
+  const [qr, setQr] = useState<AuthenticatorQr | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!qr) return;
+    const hide = () => setQr(null);
+    const onVisibility = () => { if (document.hidden) hide(); };
+    const timeout = window.setTimeout(hide, 120_000);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { window.clearTimeout(timeout); document.removeEventListener("visibilitychange", onVisibility); };
+  }, [qr]);
+  return <div className="authenticator-setup">
+    <div><p className="lbl">Connect your authenticator</p><p className="mono mu">Scan this QR in Google Authenticator, Microsoft Authenticator, or another TOTP app. It connects to your existing account.</p></div>
+    {qr ? <div className="authenticator-qr">
+      <img src={qr.qrDataUrl} width={240} height={240} alt="Private authenticator setup QR code" />
+      <p className="mono">{qr.email}</p>
+      <p className="mono mu">Keep this QR private. It hides after two minutes or when you leave this tab.</p>
+      <button className="btn" type="button" onClick={() => setQr(null)}>Hide QR ×</button>
+    </div> : <form className="form" onSubmit={async (event) => {
+      event.preventDefault(); setBusy(true); setError("");
+      try { setQr(await api<AuthenticatorQr>("/authenticator/qr", { method: "POST", body: JSON.stringify({ currentPassword: password }) })); }
+      catch (e) { setError(errorText(e)); }
+      finally { setPassword(""); setBusy(false); }
+    }}>
+      <Field label="Confirm your password to show QR">
+        <input className="in-t" type="password" autoComplete="current-password" placeholder="Your current password" value={password} required maxLength={256} onChange={(e) => setPassword(e.target.value)} />
+      </Field>
+      <button className="btn" type="submit" disabled={busy}>{busy ? "Checking…" : "Show authenticator QR →"}</button>
+      {error && <p className="credentials-error mono" role="alert">{error}</p>}
+    </form>}
+  </div>;
+}
+
 function CredentialsEditor() {
   const [value, setValue] = useState<OwnerCredentialsInput>({
     username: "",
@@ -1796,8 +1835,14 @@ function CredentialsEditor() {
     newPassword: "",
     currentPassword: "",
     code: "",
+    verificationMethod: "totp",
+    newPin: "",
+    authenticatorCode: "",
   });
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [currentMethod, setCurrentMethod] = useState<VerificationMethod>("totp");
+  const [pinConfigured, setPinConfigured] = useState(false);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -1813,7 +1858,10 @@ function CredentialsEditor() {
           ...current,
           username: account.username,
           email: account.email,
+          verificationMethod: account.verificationMethod,
         }));
+        setCurrentMethod(account.verificationMethod);
+        setPinConfigured(account.pinConfigured);
         setReady(true);
         setError("");
       })
@@ -1837,7 +1885,7 @@ function CredentialsEditor() {
           <strong>Your sign-in details</strong>
         </span>
         <span className="credentials-badge mono">
-          2FA on <span aria-hidden="true">↗</span>
+          {currentMethod === "pin" ? "PIN on" : "Authenticator on"} <span aria-hidden="true">↗</span>
         </span>
       </summary>
       <form
@@ -1860,6 +1908,14 @@ function CredentialsEditor() {
             setFields({ confirmPassword: "Passwords don’t match." });
             return;
           }
+          if (value.newPin !== confirmPin) {
+            setFields({ confirmPin: "PINs don’t match." });
+            return;
+          }
+          if (value.verificationMethod === "pin" && !pinConfigured && !value.newPin) {
+            setFields({ newPin: "Set a six-digit PIN first." });
+            return;
+          }
           setBusy(true);
           try {
             const result = await api<OwnerCredentials & { csrfToken: string }>(
@@ -1873,7 +1929,13 @@ function CredentialsEditor() {
               newPassword: "",
               currentPassword: "",
               code: "",
+              verificationMethod: result.verificationMethod,
+              newPin: "",
+              authenticatorCode: "",
             });
+            setCurrentMethod(result.verificationMethod);
+            setPinConfigured(result.pinConfigured);
+            setConfirmPin("");
             setConfirmPassword("");
             setMessage("Saved. Your other sessions have been signed out.");
           } catch (e) {
@@ -1958,6 +2020,31 @@ function CredentialsEditor() {
             </Field>
           </div>
           <div className="credentials-verify">
+            <p className="lbl">Your second step</p>
+            <div className="verification-options" role="group" aria-label="Verification method">
+              {([ ["totp", "Authenticator", "A fresh code from your app."], ["pin", "Personal PIN", "Your own six-digit code."] ] as const).map(([method, label, hint]) => (
+                <label key={method} className={"verification-option " + (value.verificationMethod === method ? "is-selected" : "")}>
+                  <input type="radio" name="verification-method" value={method} checked={value.verificationMethod === method} onChange={() => {
+                    setValue((v) => ({ ...v, verificationMethod: method, newPin: "", authenticatorCode: "" }));
+                    setConfirmPin(""); setMessage("");
+                  }} />
+                  <span><strong>{label}</strong><small>{hint}</small></span>
+                </label>
+              ))}
+            </div>
+            {value.verificationMethod === "pin" && <div className="g2">
+              <Field label="New PIN" hint={fields.newPin || (pinConfigured ? "Leave blank to keep your PIN." : "Choose six digits. A PIN stays the same until you change it.")}>
+                <input className="in-t" type="password" inputMode="numeric" autoComplete="new-password" placeholder="Choose a six-digit PIN" value={value.newPin} maxLength={6} pattern="[0-9]{6}" onChange={(e) => change("newPin", e.target.value.replace(/\D/g, "").slice(0, 6))} />
+              </Field>
+              <Field label="Confirm new PIN" hint={fields.confirmPin}>
+                <input className="in-t" type="password" inputMode="numeric" autoComplete="new-password" placeholder="Repeat your new PIN" maxLength={6} value={confirmPin} onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))} />
+              </Field>
+            </div>}
+            {value.verificationMethod === "totp" && currentMethod === "pin" && <Field label="Confirm authenticator setup" hint={fields.authenticatorCode || "Scan the QR below, then enter a fresh app code to activate it."}>
+              <input className="in-t" inputMode="numeric" autoComplete="one-time-code" placeholder="Code from your authenticator" value={value.authenticatorCode} maxLength={6} pattern="[0-9]{6}" required onChange={(e) => change("authenticatorCode", e.target.value.replace(/\D/g, "").slice(0, 6))} />
+            </Field>}
+          </div>
+          <div className="credentials-verify">
             <p className="lbl">Confirm it’s you</p>
             <div className="g2">
               <Field label="Current password" hint={fields.currentPassword}>
@@ -1973,14 +2060,15 @@ function CredentialsEditor() {
                 />
               </Field>
               <Field
-                label="Authenticator code"
+                label={currentMethod === "pin" ? "Current PIN" : "Current authenticator code"}
                 hint={
                   fields.code ||
-                  "Just signed in? Wait for the next code before saving."
+                  (currentMethod === "pin" ? "Use your existing PIN to confirm this change." : "Just signed in? Wait for the next code before saving.")
                 }
               >
                 <input
                   className="in-t credential-code"
+                  type={currentMethod === "pin" ? "password" : "text"}
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   placeholder="6-digit code"
@@ -2022,6 +2110,7 @@ function CredentialsEditor() {
           </button>
         )}
       </form>
+      <AuthenticatorSetup />
     </details>
   );
 }
